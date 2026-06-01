@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeeperPAM® NHI 見積もりツール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Noto+Sans+JP:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Keeper Brand Tokens ──────────────────────────────────
+   Source: keepersecurity.com/assets/pdf/brand-guidelines.pdf
+           keepersecurity.com/press.html (Outfit KS = official font)
+           keepersecurity.com/ja_JP/ (live site visual reference)
+   Gold:  #FFC700  Navy:  #092438  Yale: #054B91
+   Black: #000000  White: #FCFAF5
+   Font:  Outfit (Latin) + Noto Sans JP (Japanese)
+────────────────────────────────────────────────────────── */
+:root {
+  --gold:        #FFC700;
+  --gold-dim:    rgba(255,199,0,.12);
+  --gold-border: rgba(255,199,0,.3);
+  --black:       #000000;
+  --navy:        #092438;
+  --navy-card:   #0B1E2D;
+  --navy-input:  #0D2337;
+  --navy-hover:  #112840;
+  --yale:        #054B91;
+  --divider:     rgba(255,255,255,.07);
+  --text-1:      #FFFFFF;
+  --text-2:      rgba(255,255,255,.65);
+  --text-3:      rgba(255,255,255,.38);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+  background: var(--black);
+  color: var(--text-1);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Page shell ── */
+.page { max-width: 820px; margin: 0 auto; padding: 2rem 1rem 5rem; }
+
+/* ── Top nav bar with logo ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 0 1.5rem; margin-bottom: .5rem;
+  border-bottom: 1px solid var(--divider);
+}
+.keeper-logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.keeper-coin {
+  width: 36px; height: 36px;
+  /* Gold coin SVG inline — the Keeper shield/K mark */
+  background: var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: var(--navy);
+  letter-spacing: -.02em; flex-shrink: 0;
+}
+.keeper-wordmark {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px; font-weight: 800;
+  color: #fff; letter-spacing: -.02em;
+  line-height: 1;
+}
+.keeper-wordmark sup { font-size: 10px; font-weight: 400; vertical-align: super; margin-left: 1px; opacity: .7; }
+.topbar-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .07em;
+  color: var(--gold); background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  padding: 3px 10px; border-radius: 20px;
+}
+
+/* ── Hero ── */
+.hero { text-align: center; margin: 2rem 0 1.75rem; }
+.hero-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--gold); background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  padding: 4px 12px; border-radius: 20px; margin-bottom: 1rem;
+}
+.hero h1 {
+  font-size: 1.85rem; font-weight: 800; letter-spacing: -.03em;
+  color: #fff; margin-bottom: .45rem;
+}
+.hero h1 span { color: var(--gold); }
+.hero p { color: var(--text-2); font-size: 13px; max-width: 480px; margin: 0 auto; }
+
+/* ── Cards ── */
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: .875rem;
+}
+.card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 1.1rem; }
+.card-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;
+  background: rgba(255,255,255,.07); border: 1px solid var(--divider);
+}
+/* all icon variants use same dark bg — Keeper palette has no rainbow */
+.ci-blue, .ci-teal, .ci-amber, .ci-pink { background: rgba(255,199,0,.1); border-color: var(--gold-border); }
+.card-title { font-size: 14px; font-weight: 700; color: #fff; }
+.card-sub   { font-size: 11.5px; color: var(--text-2); margin-top: 2px; line-height: 1.5; }
+
+/* ── Input grid ── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 560px) { .grid3 { grid-template-columns: 1fr 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text-2); letter-spacing: .04em; text-transform: uppercase; }
+.field input[type=number] {
+  height: 40px; padding: 0 12px; font-size: 15px; font-weight: 600;
+  border: 1.5px solid rgba(255,255,255,.14); border-radius: 8px;
+  background: var(--navy-input); color: #fff; outline: none;
+  -moz-appearance: textfield; transition: border-color .15s, background .15s;
+  font-family: inherit;
+}
+.field input[type=number]::-webkit-outer-spin-button,
+.field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.field input[type=number]:focus { border-color: var(--gold); background: var(--navy-hover); }
+.field-hint { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+
+/* ── Section label ── */
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-3); margin: 1rem 0 .5rem; padding-top: 1rem;
+  border-top: 1px solid var(--divider);
+}
+.section-label:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+
+/* ── Callouts ── */
+.info-callout {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: rgba(255,199,0,.08); border: 1px solid var(--gold-border); border-radius: 8px;
+  padding: 10px 14px; margin: .75rem 0 0; font-size: 12px; color: rgba(255,255,255,.85); line-height: 1.6;
+}
+.info-callout .m-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Toggle rows ── */
+.toggle-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--divider);
+}
+.toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.toggle-row:first-child { padding-top: 0; }
+.tr-info { flex: 1; }
+.tr-title { font-size: 13px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tr-desc  { font-size: 11.5px; color: var(--text-2); margin-top: 3px; line-height: 1.55; }
+.badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+  white-space: nowrap;
+}
+.badge-x2    { background: rgba(255,199,0,.18); color: var(--gold); border: 1px solid var(--gold-border); }
+.badge-free  { background: rgba(255,255,255,.08); color: var(--text-2); border: 1px solid var(--divider); }
+.badge-extra { background: rgba(255,199,0,.12); color: var(--gold); border: 1px solid var(--gold-border); }
+
+/* Switch */
+.switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.sw-track {
+  position: absolute; inset: 0; background: rgba(255,255,255,.15); border-radius: 22px; cursor: pointer; transition: .2s;
+}
+.sw-track::before {
+  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px;
+  background: #fff; border-radius: 50%; transition: .2s;
+}
+.switch input:checked + .sw-track { background: var(--gold); }
+.switch input:checked + .sw-track::before { transform: translateX(18px); background: var(--navy); }
+.switch input:disabled + .sw-track { opacity: .4; cursor: not-allowed; }
+
+/* ── CTA ── */
+.cta {
+  width: 100%; height: 52px; font-size: 15px; font-weight: 700;
+  background: var(--gold); color: var(--navy); border: none; border-radius: 8px;
+  cursor: pointer; margin-top: 1.25rem; transition: background .15s, transform .1s, box-shadow .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; letter-spacing: .01em;
+  box-shadow: 0 4px 20px rgba(255,199,0,.25);
+}
+.cta:hover { background: #FFD234; box-shadow: 0 6px 28px rgba(255,199,0,.4); }
+.cta:active { transform: scale(0.99); }
+
+/* ── Result ── */
+#result { display: none; margin-top: 1.25rem; }
+
+.result-card {
+  background: var(--navy-card);
+  border: 1px solid var(--gold-border);
+  border-radius: 8px; padding: 1.5rem;
+}
+.res-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 1.25rem; }
+.res-title { font-size: 1rem; font-weight: 800; color: #fff; }
+.tier-pill-big {
+  font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px;
+  letter-spacing: .03em;
+}
+
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+@media (max-width: 480px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+.kpi {
+  background: var(--navy-input); border: 1px solid var(--divider); border-radius: 8px; padding: 12px 14px;
+}
+.kpi .kl { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+.kpi .kv { font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: var(--gold); }
+.kpi .ks { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* Tier bar */
+.tier-bar-wrap { margin-bottom: 1rem; }
+.tier-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); margin-bottom: 5px; }
+.tier-bar { display: flex; gap: 3px; border-radius: 6px; overflow: hidden; height: 8px; }
+.tb-seg { flex: 1; background: rgba(255,255,255,.1); border-radius: 2px; transition: background .3s; }
+.tb-seg.active { background: var(--gold); }
+.tb-seg.warn   { background: #E24B4A; }
+.next-tier-note { font-size: 12px; color: var(--text-2); margin-top: 5px; text-align: right; }
+
+/* Cost strip */
+.cost-strip {
+  background: var(--navy-input);
+  border: 1px solid var(--gold-border);
+  border-radius: 8px; padding: 1rem 1.25rem;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 1.25rem;
+}
+.cs-lhs .cs-label { font-size: 11px; color: var(--text-2); margin-bottom: 2px; }
+.cs-lhs .cs-val   { font-size: 2rem; font-weight: 800; letter-spacing: -.03em; color: var(--gold); }
+.cs-rhs { text-align: right; }
+.cs-rhs .cs-monthly { font-size: 13px; color: var(--text-2); }
+.cs-rhs .cs-note    { font-size: 11px; color: var(--text-3); max-width: 220px; margin-top: 3px; line-height: 1.5; }
+
+/* Breakdown table */
+.breakdown { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--text-1); }
+.breakdown th {
+  text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--text-3); padding: 4px 8px 10px;
+}
+.breakdown th.num { text-align: right; }
+.breakdown td { padding: 7px 8px; border-top: 1px solid var(--divider); vertical-align: top; }
+.breakdown td.num { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
+.breakdown td.sub { font-size: 11.5px; color: var(--text-3); }
+.breakdown tr.subtotal td { border-top: 1px solid rgba(255,255,255,.2); font-weight: 700; }
+.breakdown tr.grand td { border-top: 1px solid var(--gold); font-weight: 800; font-size: 14px; color: var(--gold); }
+.breakdown .cat-row td { padding-top: 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); border-top: 1px solid var(--divider); }
+
+/* Warn / tip boxes */
+.warn-box {
+  background: rgba(226,75,74,.12); border: 1px solid rgba(226,75,74,.4); border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; color: #FFAEAE; margin-top: .875rem; line-height: 1.6;
+}
+.tip-box {
+  background: rgba(255,199,0,.08); border: 1px solid var(--gold-border); border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; color: rgba(255,255,255,.85); margin-top: .5rem; line-height: 1.7;
+}
+
+/* Footnote & disclaimer */
+.footnote {
+  font-size: 11px; color: var(--text-3); text-align: center;
+  margin-top: 1.5rem; line-height: 1.7; padding-top: 1.25rem;
+  border-top: 1px solid var(--divider);
+}
+.disclaimer {
+  font-size: 10px; color: var(--text-3); text-align: center;
+  margin-top: .75rem; line-height: 1.65; max-width: 660px; margin-left: auto; margin-right: auto;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Top bar with Keeper logo (one instance only) ── -->
+  <div class="topbar">
+    <div class="keeper-logo">
+      <!-- Official Keeper logo SVG (gold coin + white wordmark) -->
+      <img src="https://www.keepersecurity.com/assets/branding/keeper-logo-white.svg"
+           alt="Keeper®" height="32"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <!-- Fallback if SVG fails to load -->
+      <div style="display:none; align-items:center; gap:10px;">
+        <div class="keeper-coin">K</div>
+        <div class="keeper-wordmark">Keeper<sup>®</sup></div>
+      </div>
+    </div>
+    <div class="topbar-badge">KeeperPAM · NHI 見積もりツール</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-pill">🔐 非人間アイデンティティ（NHI）</div>
+    <h1>NHI数は<span>いくつ</span>必要ですか？</h1>
+    <p>以下の項目を入力して、PAMレコード数と月額料金ティアを見積もります。</p>
+  </div>
+
+  <!-- ── SECTION 1: Machines ── -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon ci-blue">🖥️</div>
+      <div>
+        <div class="card-title">ステップ 1 — 対象マシン・リソース</div>
+        <div class="card-sub">サーバー・VM・DBインスタンス・ディレクトリドメインそれぞれ 1 件 = 1 PAMレコード = 1 NHI</div>
+      </div>
+    </div>
+
+    <div class="section-label">サーバー・仮想マシン</div>
+    <div class="grid3">
+      <div class="field">
+        <label>Windows サーバー / VM</label>
+        <input type="number" id="win" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">オンプレ、Azure VM、EC2 Windows など</div>
+      </div>
+      <div class="field">
+        <label>Linux サーバー / VM</label>
+        <input type="number" id="lin" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">オンプレ、EC2、GCP Compute、コンテナ など</div>
+      </div>
+      <div class="field">
+        <label>その他 OS / ネットワーク機器</label>
+        <input type="number" id="other" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">macOS、ネットワーク機器、IoT など</div>
+      </div>
+    </div>
+
+    <div class="section-label">その他の PAM リソース</div>
+    <div class="grid3">
+      <div class="field">
+        <label>データベースインスタンス数</label>
+        <input type="number" id="db" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">MySQL、PostgreSQL、SQL Server、Oracle など</div>
+      </div>
+      <div class="field">
+        <label>ディレクトリドメイン数（AD / LDAP）</label>
+        <input type="number" id="dir" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">管理対象のディレクトリ 1 件 = 1 PAM ディレクトリレコード</div>
+      </div>
+      <div class="field">
+        <label>Webアプリ（リモートブラウザ / RBI）</label>
+        <input type="number" id="rbi" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">RBIセッション経由で接続する社内Webアプリ</div>
+      </div>
+    </div>
+
+    <div class="section-label">ゲートウェイ</div>
+    <div class="grid2">
+      <div class="field">
+        <label>Keeper ゲートウェイ 台数</label>
+        <input type="number" id="gw" min="0" value="1" oninput="recalc()">
+        <div class="field-hint">通常はネットワークセグメント・環境ごとに 1 台。各ゲートウェイは ARAM イベント経由で 1 NHI としてカウントされます。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: Accounts ── -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon ci-teal">👤</div>
+      <div>
+        <div class="card-title">ステップ 2 — アカウント・クレデンシャル（PAM ユーザー）</div>
+        <div class="card-sub">ローテーションまたはアクセス仲介に使用する管理対象アカウント 1 件 = 1 PAM ユーザーレコード = 1 NHI</div>
+      </div>
+    </div>
+
+    <div class="section-label">ローカル OS アカウント</div>
+    <div class="grid2">
+      <div class="field">
+        <label>マシン 1 台あたりの平均アカウント数</label>
+        <input type="number" id="acct_per" min="0" value="2" oninput="recalc()">
+        <div class="field-hint">例：root、administrator、svc_backup など。上記の全サーバー台数に乗算されます。</div>
+      </div>
+    </div>
+
+    <div class="section-label">その他のアカウント</div>
+    <div class="grid3">
+      <div class="field">
+        <label>データベースアカウント数（合計）</label>
+        <input type="number" id="db_acct" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">全 DB インスタンス対象でローテーションする DB ユーザー数</div>
+      </div>
+      <div class="field">
+        <label>ディレクトリサービスアカウント数</label>
+        <input type="number" id="dir_acct" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">svc_sql、svc_backup などの AD ユーザー</div>
+      </div>
+      <div class="field">
+        <label>共有 / フリートサービスアカウント数</label>
+        <input type="number" id="fleet_acct" min="0" value="0" oninput="recalc()">
+        <div class="field-hint">何台のマシンで使用されても 1 PAM ユーザーとしてカウント</div>
+      </div>
+    </div>
+
+    <div class="info-callout" style="margin-top:.875rem;">
+      <span class="m-icon">💡</span>
+      <span>1 つの PAM ユーザーアカウントは、接続するマシン数にかかわらず <strong>1 NHI</strong> としてカウントされます。ただし、接続先の各マシンは引き続き個別の PAM マシン NHI としてカウントされます。</span>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: Record multipliers ── -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon ci-amber">⚙️</div>
+      <div>
+        <div class="card-title">ステップ 3 — レコード乗数</div>
+        <div class="card-sub"><em>同一</em>の物理マシン・アカウントに追加のボルトレコードが必要な場合があります。追加レコード 1 件 = 追加 NHI 1 件</div>
+      </div>
+    </div>
+
+    <!-- Workflow split -->
+    <div class="toggle-row">
+      <div class="tr-info">
+        <div class="tr-title">
+          同一マシンにワークフロー（承認必須）と非ワークフローの両方でアクセスする
+          <span class="badge badge-x2">マシン 1 台 × 2 レコード</span>
+        </div>
+        <div class="tr-desc">
+          ワークフロー承認の設定は物理サーバーではなく <em>PAM マシンレコード自体</em> に紐づきます。
+          承認必須（JIT）アクセスと通常アクセスを同じホストに混在させる場合は、
+          同一ホストを指す <strong>PAM マシンレコードを 2 件作成</strong>する必要があります（1 件はワークフロー有効、1 件は無効）。
+          結果として 1 台のサーバーが 2 NHI となります。
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="wf_split" onchange="recalc()">
+        <span class="sw-track"></span>
+      </label>
+    </div>
+    <div id="wf_block" style="display:none; margin: .5rem 0 .25rem; padding-left:2px;">
+      <div class="grid2">
+        <div class="field">
+          <label>ワークフロー有り・無しの両レコードが必要なマシン数</label>
+          <input type="number" id="wf_machines" min="0" value="0" oninput="recalc()">
+          <div class="field-hint">これらのマシンはそれぞれ 2 PAM マシン NHI としてカウントされます</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Different teams / access policies -->
+    <div class="toggle-row">
+      <div class="tr-info">
+        <div class="tr-title">
+          同一マシンに異なるアクセスポリシーを持つ複数チームが存在する
+          <span class="badge badge-x2">マシン 1 台あたり +N レコード</span>
+        </div>
+        <div class="tr-desc">
+          ワークフロー、セッション記録、クレデンシャル設定はレコードごとに管理されるため、
+          同一ホストに対してチーム A・チーム B 用に別々の PAM マシンレコードを作成するお客様もいます。
+          追加レコードごとに NHI が増加します。
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="multi_team" onchange="recalc()">
+        <span class="sw-track"></span>
+      </label>
+    </div>
+    <div id="mt_block" style="display:none; margin: .5rem 0 .25rem;">
+      <div class="grid2">
+        <div class="field">
+          <label>チーム別に分割レコードが必要なマシン数</label>
+          <input type="number" id="mt_machines" min="0" value="0" oninput="recalc()">
+          <div class="field-hint">チームポリシー分離のために追加レコードを作成するマシン数</div>
+        </div>
+        <div class="field">
+          <label>1 台あたりの追加レコード数（最初の 1 件を除く）</label>
+          <input type="number" id="mt_extra" min="1" value="1" oninput="recalc()">
+          <div class="field-hint">例：同一サーバーに 2 チーム = 追加レコード 1 件 = マシン 1 台あたり +1 NHI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KSM -->
+    <div class="toggle-row">
+      <div class="tr-info">
+        <div class="tr-title">
+          KSM クライアントデバイス（シークレット取得）
+          <span class="badge badge-extra">追加 NHI</span>
+        </div>
+        <div class="tr-desc">
+          Keeper シークレットマネージャーへ認証してシークレットを取得する CI/CD パイプライン、Terraform ランナー、AI エージェント、自動化スクリプト。
+          デバイストークン 1 件 = 1 NHI（契約期間中 1 回のみカウント）。
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="use_ksm" onchange="recalc()">
+        <span class="sw-track"></span>
+      </label>
+    </div>
+    <div id="ksm_block" style="display:none; margin: .5rem 0 .25rem;">
+      <div class="grid2">
+        <div class="field">
+          <label>KSM クライアントデバイストークン数</label>
+          <input type="number" id="ksm_dev" min="0" value="0" oninput="recalc()">
+          <div class="field-hint">CI/CD エージェント、Terraform、K8s Pod、AI エージェント、自動化ボットなど</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discovery buffer -->
+    <div class="toggle-row">
+      <div class="tr-info">
+        <div class="tr-title">
+          ディスカバリーバッファ
+          <span class="badge badge-free">任意</span>
+        </div>
+        <div class="tr-desc">
+          Keeper ディスカバリーを実行すると、手動で計画した以上のサービスアカウントが検出されることがよくあります。
+          まだ完全な棚卸しが終わっていない場合は、バッファ（%）を追加してください。
+        </div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="use_disc" onchange="recalc()">
+        <span class="sw-track"></span>
+      </label>
+    </div>
+    <div id="disc_block" style="display:none; margin: .5rem 0 0;">
+      <div class="grid2">
+        <div class="field">
+          <label>バッファ率（%）</label>
+          <input type="number" id="disc_pct" min="0" max="300" value="20" oninput="recalc()">
+          <div class="field-hint">PAM ユーザー数にのみ適用されます</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <button class="cta" onclick="showResult()">NHI 見積もりを計算する →</button>
+
+  <!-- ── RESULT ── -->
+  <div id="result">
+    <div class="result-card">
+
+      <div class="res-header">
+        <div class="res-title" id="r_headline">NHI 見積もり結果</div>
+        <div class="tier-pill-big" id="r_tier_pill">—</div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kl">NHI 合計</div>
+          <div class="kv" id="r_total">—</div>
+          <div class="ks">アクティブ ID 数</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">PAM リソース</div>
+          <div class="kv" id="r_res">—</div>
+          <div class="ks">マシン・DB・ディレクトリ…</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">PAM ユーザー</div>
+          <div class="kv" id="r_usr">—</div>
+          <div class="ks">アカウント / クレデンシャル</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">KSM デバイス</div>
+          <div class="kv" id="r_ksm">—</div>
+          <div class="ks">シークレット取得クライアント</div>
+        </div>
+      </div>
+
+      <!-- tier progress bar -->
+      <div class="tier-bar-wrap">
+        <div class="tier-labels">
+          <span>ベース（≤24）</span><span>ティア1（25–99）</span><span>ティア2（100–249）</span><span>ティア3（250–749）</span><span>Enterprise（750+）</span>
+        </div>
+        <div class="tier-bar">
+          <div class="tb-seg" id="ts0"></div>
+          <div class="tb-seg" id="ts1"></div>
+          <div class="tb-seg" id="ts2"></div>
+          <div class="tb-seg" id="ts3"></div>
+          <div class="tb-seg" id="ts4"></div>
+        </div>
+        <div class="next-tier-note" id="r_next_note"></div>
+      </div>
+
+      <!-- cost -->
+      <div class="cost-strip">
+        <div class="cs-lhs">
+          <div class="cs-label">推定年間 NHI アドオンコスト（税抜）</div>
+          <div class="cs-val" id="r_annual">—</div>
+        </div>
+        <div class="cs-rhs">
+          <div class="cs-monthly" id="r_monthly"></div>
+          <div class="cs-note" id="r_tier_note"></div>
+        </div>
+      </div>
+
+      <!-- breakdown table -->
+      <table class="breakdown">
+        <thead>
+          <tr><th>コンポーネント</th><th>備考</th><th class="num">NHI 数</th></tr>
+        </thead>
+        <tbody id="r_tbody"></tbody>
+      </table>
+
+      <div id="r_warn"></div>
+      <div id="r_tips"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// toggle sub-blocks
+['wf_split','multi_team','use_ksm','use_disc'].forEach(id => {
+  document.getElementById(id).addEventListener('change', function () {
+    const map = { wf_split: 'wf_block', multi_team: 'mt_block', use_ksm: 'ksm_block', use_disc: 'disc_block' };
+    document.getElementById(map[id]).style.display = this.checked ? 'block' : 'none';
+    recalc();
+  });
+});
+
+function n(id) { return Math.max(0, parseInt(document.getElementById(id).value) || 0); }
+
+function calc() {
+  const machines = n('win') + n('lin') + n('other');
+  const dbs      = n('db');
+  const dirs     = n('dir');
+  const rbis     = n('rbi');
+  const gws      = n('gw');
+
+  const wfMachines = document.getElementById('wf_split').checked ? n('wf_machines') : 0;
+  const wfExtra    = Math.min(wfMachines, machines);
+
+  const mtMachines = document.getElementById('multi_team').checked ? n('mt_machines') : 0;
+  const mtExtra_n  = document.getElementById('multi_team').checked ? n('mt_extra')    : 0;
+  const mtExtra    = Math.min(mtMachines, machines) * mtExtra_n;
+
+  const pamResources = machines + dbs + dirs + rbis + gws + wfExtra + mtExtra;
+
+  const localAcct  = machines * n('acct_per');
+  const dbAcct     = n('db_acct');
+  const dirAcct    = n('dir_acct');
+  const fleetAcct  = n('fleet_acct');
+  let pamUsers = localAcct + dbAcct + dirAcct + fleetAcct;
+  const discPct = document.getElementById('use_disc').checked ? n('disc_pct') : 0;
+  if (discPct > 0) pamUsers = Math.ceil(pamUsers * (1 + discPct / 100));
+
+  const ksmDevs = document.getElementById('use_ksm').checked ? n('ksm_dev') : 0;
+
+  const total = pamResources + pamUsers + ksmDevs;
+  return { machines, dbs, dirs, rbis, gws, wfExtra, mtExtra, pamResources, localAcct, dbAcct, dirAcct, fleetAcct, pamUsers, ksmDevs, total, discPct };
+}
+
+function recalc() { calc(); }
+
+function tier(n) {
+  if (n <= 24)  return { name: 'ベース（含む）', range: '0〜24 NHI',    monthly: 0,       idx: 0 };
+  if (n <= 99)  return { name: 'ティア 1',       range: '25〜99 NHI',   monthly: 165000,  idx: 1 };
+  if (n <= 249) return { name: 'ティア 2',       range: '100〜249 NHI', monthly: 255000,  idx: 2 };
+  if (n <= 749) return { name: 'ティア 3',       range: '250〜749 NHI', monthly: 450000,  idx: 3 };
+  const blocks = Math.ceil(n / 1000);
+  return { name: 'エンタープライズ', range: '750以上のNHI', monthly: 450000 + (blocks - 1) * 600000, idx: 4, blocks };
+}
+
+const TIER_COLORS = ['#092438','#092438','#092438','#092438','#092438'];
+const TIER_BGS    = ['rgba(255,199,0,.25)','#FFC700','rgba(255,199,0,.7)','rgba(255,199,0,.5)','rgba(255,199,0,.35)'];
+
+function fmt(v) { return '¥' + v.toLocaleString('ja-JP'); }
+
+function showResult() {
+  const d = calc();
+  const t = tier(d.total);
+
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // header
+  document.getElementById('r_headline').textContent = `現在のティア：${t.name}`;
+  const pill = document.getElementById('r_tier_pill');
+  pill.textContent = t.range;
+  pill.style.background = TIER_BGS[t.idx];
+  pill.style.color       = TIER_COLORS[t.idx];
+
+  // KPIs
+  document.getElementById('r_total').textContent = d.total.toLocaleString();
+  document.getElementById('r_res').textContent   = d.pamResources.toLocaleString();
+  document.getElementById('r_usr').textContent   = d.pamUsers.toLocaleString();
+  document.getElementById('r_ksm').textContent   = d.ksmDevs.toLocaleString();
+
+  // tier bar
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('ts' + i);
+    el.className = 'tb-seg';
+    if (i === t.idx) el.classList.add('active');
+  }
+  const nextBoundaries = [25, 100, 250, 750, null];
+  const nextAt = nextBoundaries[t.idx];
+  const nextNote = document.getElementById('r_next_note');
+  if (nextAt !== null) {
+    const gap = nextAt - d.total;
+    nextNote.textContent = gap <= 0
+      ? ''
+      : gap <= 15
+        ? `⚠️ 次のティアまであと ${gap} NHI です`
+        : `次のティア（${nextAt} NHI 〜）まであと ${gap} NHI`;
+  } else {
+    const nextBlock = t.blocks * 1000;
+    nextNote.textContent = `次の Enterprise ブロックまであと ${nextBlock - d.total} NHI（+${fmt(600000)}/月）`;
+  }
+
+  // cost
+  document.getElementById('r_annual').textContent  = fmt(t.monthly * 12);
+  document.getElementById('r_monthly').textContent = t.monthly === 0 ? 'KeeperPAM に含まれます（無料）' : `${fmt(t.monthly)} / 月`;
+  const noteTexts = [
+    'このスケールでは NHI アドオン費用はかかりません。',
+    'アドオン ¥165,000/月（年間一括請求）。',
+    'アドオン ¥255,000/月（年間一括請求）。',
+    'アドオン ¥450,000/月（年間一括請求）。',
+    `ティア3基本料金 ¥450,000 ＋ 超過分 ¥600,000 × ${t.blocks - 1} ブロック（1,000 NHI 単位・切り上げ）、年間一括請求。`
+  ];
+  document.getElementById('r_tier_note').textContent = noteTexts[t.idx];
+
+  // breakdown rows
+  const rows = [];
+  const push = (label, note, count, isCat) => {
+    if (count === 0 && !isCat) return;
+    rows.push({ label, note, count, isCat });
+  };
+
+  push('PAM リソース', '', null, true);
+
+  const serverCount = n('win') + n('lin') + n('other');
+  push('サーバー / VM（ベース）',
+    `${n('win')} Windows + ${n('lin')} Linux + ${n('other')} その他`,
+    serverCount);
+  if (d.wfExtra > 0)
+    push('  ＋ ワークフロー分割レコード',
+      `${d.wfExtra} 台 × 承認必須アクセス用の 2 件目レコード`,
+      d.wfExtra);
+  if (d.mtExtra > 0)
+    push('  ＋ マルチチーム分割レコード',
+      `${n('mt_machines')} 台 × ${n('mt_extra')} 追加レコード`,
+      d.mtExtra);
+  push('データベース', `${d.dbs} インスタンス`, d.dbs);
+  push('ディレクトリドメイン', `${d.dirs} ドメイン`, d.dirs);
+  push('RBI Web アプリ', `${d.rbis} アプリ`, d.rbis);
+  push('Keeper ゲートウェイ', `${d.gws} ゲートウェイ`, d.gws);
+
+  rows.push({ label: 'PAM リソース 小計', note: '', count: d.pamResources, subtotal: true });
+
+  push('PAM ユーザー', '', null, true);
+  push('ローカル OS アカウント', `${serverCount} 台 × ${n('acct_per')} アカウント`, d.localAcct);
+  push('データベースアカウント', `${d.dbs} DB インスタンス分`, d.dbAcct);
+  push('ディレクトリサービスアカウント', '', d.dirAcct);
+  push('共有 / フリートサービスアカウント', '接続先マシン数に関わらず 1 NHI', d.fleetAcct);
+  if (d.discPct > 0) {
+    const rawUsers = d.localAcct + n('db_acct') + n('dir_acct') + n('fleet_acct');
+    push(`  ＋ ディスカバリーバッファ（${d.discPct}%）`, `${rawUsers} → バッファ後 ${d.pamUsers}`, d.pamUsers - rawUsers);
+  }
+  rows.push({ label: 'PAM ユーザー 小計', note: '', count: d.pamUsers, subtotal: true });
+
+  if (d.ksmDevs > 0) {
+    push('KSM クライアントデバイス', '', null, true);
+    push('デバイストークン', 'CI/CD、Terraform、AI エージェント、ボットなど', d.ksmDevs);
+    rows.push({ label: 'KSM 小計', note: '', count: d.ksmDevs, subtotal: true });
+  }
+
+  rows.push({ label: 'アクティブ NHI 合計', note: '', count: d.total, grand: true });
+
+  const tbody = document.getElementById('r_tbody');
+  tbody.innerHTML = rows.map(r => {
+    if (r.grand)    return `<tr class="grand"><td colspan="2">${r.label}</td><td class="num">${r.count}</td></tr>`;
+    if (r.subtotal) return `<tr class="subtotal"><td colspan="2">${r.label}</td><td class="num">${r.count}</td></tr>`;
+    if (r.isCat)    return `<tr class="cat-row"><td colspan="3">${r.label}</td></tr>`;
+    if (r.count === 0) return '';
+    return `<tr><td>${r.label}</td><td class="sub">${r.note}</td><td class="num">${r.count}</td></tr>`;
+  }).join('');
+
+  // warnings
+  const warnDiv = document.getElementById('r_warn');
+  warnDiv.innerHTML = '';
+  if (nextAt !== null && (nextAt - d.total) <= 15 && d.total > 0) {
+    warnDiv.innerHTML = `<div class="warn-box">⚠️ <strong>次のティア境界に近づいています。</strong> 廃止されたマシンや契約期間中に一度でもアクティブだったアカウントもカウント対象となります。余裕を持ったバッファを見込んでおくことをお勧めします。</div>`;
+  }
+
+  // tips
+  const tips = [];
+  if (d.wfExtra > 0) tips.push('<strong>ワークフロー分割レコードについて：</strong> ワークフロー有効・無効の両レコードは同一の物理マシンを指しています。Keeper はボルトレコード数をカウントするため、物理ホスト 1 台でも 2 NHI となります。');
+  if (d.mtExtra > 0) tips.push('<strong>マルチチーム分割レコードについて：</strong> ロールベースの強制ポリシーとフォルダレベルのアクセス制御を活用することで、同一マシンの重複レコードを削減できる場合があります。');
+  if (n('acct_per') > 5) tips.push('<strong>サーバーあたりのアカウント数が多い場合：</strong> まず Keeper ディスカバリーを実行して正確な数を把握することをお勧めします。予想以上のサービスアカウントが発見されることがよくあります。');
+  if (d.ksmDevs > 0) tips.push('<strong>KSM デバイスについて：</strong> デバイストークンはパイプラインが何千回実行されても契約期間中 1 回のみカウントされます。ただし、実行のたびに再登録する短命コンテナはそれぞれトークンを取得します。');
+  if (t.idx >= 3) tips.push('<strong>更新時の計画について：</strong> 更新前に未使用マシンを廃止し、古いアカウントをローテーションアウトすることで、次の契約期間の計測ウィンドウをリセットできます。');
+  tips.push('<strong>ワークフローに関する注意：</strong> すべてのユーザーが<em>同じ</em> PAM マシンレコードを通じて接続する場合（ワークフローの有無にかかわらず）、NHI は 1 件です。カウントが増えるのは、意図的に同一ホスト用の別レコードを作成した場合のみです。');
+
+  document.getElementById('r_tips').innerHTML = tips.length
+    ? `<div class="tip-box">💡 ${tips.join('<br><br>💡 ')}</div>` : '';
+}
+</script>
+
+<div class="page" style="padding-top:0;">
+  <div class="footnote">
+    本ツールは「NHIライセンスに関するFAQ」（©2026 Keeper Security, Inc.）に基づいています。<br>
+    ティア：ベース ¥0 · ティア1 ¥165,000/月 · ティア2 ¥255,000/月 · ティア3 ¥450,000/月 · エンタープライズ ¥600,000/月（超過分 1,000 NHI 単位・切り上げ、ティア3基本料金に加算）<br>
+    NHI 数は ARAM イベントを通じて契約期間全体で計測されます。正確な料金はアカウントマネージャーにご確認ください。
+  </div>
+  <div class="disclaimer">
+    Keeper®、KeeperPAM®、Keeper Secrets Manager® は Keeper Security, Inc. の登録商標です。<br>
+    All third-party product names, trademarks and registered trademarks referenced herein are the property of their respective owners. Reference to any third-party products or services does not constitute or imply endorsement, sponsorship or affiliation.
+  </div>
+</div>
+</body>
+</html>
